@@ -1,0 +1,4 @@
+pytest
+Appium-Python-Client
+pytest-bdd
+allure-pytest-bdd
