@@ -9,5 +9,4 @@ Scenario: 搜索pytest
 
 Scenario: 搜索2pytest
     Given 搜索词:pytest
-    And 浏览器:Chrome
     When 打开百度，输入搜索词搜索

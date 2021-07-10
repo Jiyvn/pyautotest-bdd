@@ -1,7 +1,10 @@
 import allure
 import pytest
+# from pytest_bdd.parser import Step
 
 from common.Browser import REMOTE
+
+default_browser = "chrome"
 
 
 def pytest_addoption(parser):
@@ -15,7 +18,7 @@ def pytest_addoption(parser):
 
 @pytest.fixture(scope="session", autouse=True)
 def browser(request):
-    return request.config.getoption("--browser")
+    return request.config.getoption("--browser") or default_browser
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -24,16 +27,14 @@ def driver_bin(request):
 
 
 @pytest.fixture(scope="session", autouse=True)
-def driver(browser):
+def WebDriver():
     import os
     home = os.environ.get("HOME") or os.environ.get("HOMEPATH")
     os.environ['PATH'] = ''.join([os.environ['PATH'], ":", home, "/webdrivers"])
-    if browser:
-        return REMOTE.WEBDRIVERS[browser.lower()]()
-    else:
-        def web_driver(br: str):
-            return REMOTE.WEBDRIVERS[br.lower()]()
-        return web_driver
+
+    def web_driver(br):
+        return REMOTE.WEBDRIVERS[br.lower()]()
+    return web_driver
 
 
 def pytest_exception_interact(node, call, report):
@@ -51,28 +52,35 @@ def pytest_exception_interact(node, call, report):
 
 
 def pytest_sessionfinish(session, exitstatus):
-    # print("session: {}".format(session))
-    # print("exitstatus: {}".format(exitstatus))
     pass
 
 
 def pytest_bdd_step_error(request, feature, scenario, step, step_func, step_func_args, exception):
     # pytest_bdd.hooks.pytest_bdd_step_error
-    print(step)
-    print(type(step))
-    print(step_func_args)
+    # print(step)
+    # print(step_func)
+    # print(step_func_args)
     if "driver" in step_func_args:
-        driver = step_func_args['driver']
-        allure.attach(driver.get_screenshot_as_png(), 'Fail screenshot', allure.attachment_type.PNG)
+        step_driver = step_func_args['driver']
+        allure.attach(step_driver.get_screenshot_as_png(), step.name, allure.attachment_type.PNG)
         print("attach")
-        driver.quit()
+        # # step error钩子driver不需要退出，在定义driver fixture出退出即可
+        # step_driver.quit()
+
+
+def pytest_bdd_step_func_lookup_error(request, feature, scenario, step, exception):
+    """Called when step lookup failed."""
+    # print(scenario.steps)
+    # print(scenario.steps[-1])
+    # print(step.name)
+
+    # lookup_step = Step()
+    # scenario.add_step(lookup_step)
+    pass
 
 
 def pytest_bdd_before_scenario(request, feature, scenario):
     # pytest_bdd.parser.Scenario
-    # print("request: {}".format(request))
-    # print("feature: {}".format(feature))
-    # print("scenario: {}".format(scenario))
     pass
 
 
